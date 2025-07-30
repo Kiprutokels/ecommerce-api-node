@@ -1,4 +1,3 @@
-// src/config/auth.ts
 import jwt, { SignOptions, JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { TokenPayload } from '@/types/jwt';

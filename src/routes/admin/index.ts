@@ -5,6 +5,7 @@ import { AdminProductController } from '@/controllers/admin/product.controller';
 import { AdminOrderController } from '@/controllers/admin/order.controller';
 import { AdminUserController } from '@/controllers/admin/user.controller';
 import { AdminBrandController } from '@/controllers/admin/brand.controller';
+import { AdminSettingsController } from '@/controllers/admin/settings.controller';
 import { authenticate } from '@/middleware/auth.middleware';
 import { requireAdmin } from '@/middleware/admin.middleware';
 import { validateBody, validateQuery } from '@/middleware/validation.middleware';
@@ -72,5 +73,8 @@ router.post('/users', validateBody(createUserSchema), AdminUserController.store)
 router.get('/users/:id', AdminUserController.show);
 router.put('/users/:id', validateBody(updateUserSchema), AdminUserController.update);
 router.delete('/users/:id', AdminUserController.destroy);
+
+router.get('/settings', AdminSettingsController.get);
+router.put('/settings', AdminSettingsController.update);
 
 export default router;

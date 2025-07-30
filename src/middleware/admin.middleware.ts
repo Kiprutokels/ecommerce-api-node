@@ -1,4 +1,3 @@
-// src/middleware/admin.middleware.ts
 import { Response, NextFunction } from 'express';
 import { ResponseUtil } from '@/utils/response.util';
 import { AuthenticatedRequest } from '@/types/common.types';

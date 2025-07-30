@@ -1,4 +1,3 @@
-// src/config/redis.ts
 import { createClient, RedisClientType } from 'redis';
 
 class RedisClient {
