@@ -1,4 +1,5 @@
-// src/app.ts
+import 'module-alias/register';
+
 import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -9,6 +10,7 @@ import swaggerUi from "swagger-ui-express";
 import dotenv from "dotenv";
 
 import { swaggerSpec } from "@/config/swagger";
+
 import redisClient from "@/config/redis";
 import routes from "@/routes";
 import { errorHandler, notFoundHandler } from "@/middleware/error.middleware";
