@@ -1,4 +1,3 @@
-// src/utils/response.util.ts
 import { Response } from 'express';
 import { ApiResponse } from '@/types/common.types';
 

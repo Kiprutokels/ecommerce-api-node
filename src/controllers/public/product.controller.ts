@@ -14,30 +14,45 @@ export class PublicProductController {
       };
 
       // Add optional filters only if they exist
-      if (req.query.search) {
-        filters.search = req.query.search as string;
+      if (req.query.search && typeof req.query.search === 'string') {
+        filters.search = req.query.search.trim();
       }
       
-      if (req.query.category_id) {
-        filters.category_id = req.query.category_id as string;
+      if (req.query.category_id && typeof req.query.category_id === 'string') {
+        filters.category_id = req.query.category_id;
       }
 
-      if (req.query.brand_id) {
-        filters.brand_id = req.query.brand_id as string;
+      if (req.query.brand_id && typeof req.query.brand_id === 'string') {
+        filters.brand_id = req.query.brand_id;
       }
       
-      if (req.query.min_price) {
-        filters.min_price = parseFloat(req.query.min_price as string);
+      if (req.query.min_price && typeof req.query.min_price === 'string') {
+        const minPrice = parseFloat(req.query.min_price);
+        if (!isNaN(minPrice) && minPrice >= 0) {
+          filters.min_price = minPrice;
+        }
       }
       
-      if (req.query.max_price) {
-        filters.max_price = parseFloat(req.query.max_price as string);
+      if (req.query.max_price && typeof req.query.max_price === 'string') {
+        const maxPrice = parseFloat(req.query.max_price);
+        if (!isNaN(maxPrice) && maxPrice >= 0) {
+          filters.max_price = maxPrice;
+        }
       }
       
       if (req.query.is_featured === 'true') {
         filters.is_featured = true;
       } else if (req.query.is_featured === 'false') {
         filters.is_featured = false;
+      }
+
+      // Add sorting
+      if (req.query.sort_by && typeof req.query.sort_by === 'string') {
+        filters.sort_by = req.query.sort_by;
+      }
+
+      if (req.query.sort_direction && typeof req.query.sort_direction === 'string') {
+        filters.sort_direction = req.query.sort_direction as 'asc' | 'desc';
       }
 
       const { products, total } = await ProductService.getAllProducts(filters, page, perPage);
@@ -62,8 +77,8 @@ export class PublicProductController {
         in_stock: product.inStock,
         stock_quantity: product.stockQuantity,
         is_featured: product.isFeatured,
-        average_rating: parseFloat(product.averageRating.toString()),
-        review_count: product.reviewCount,
+        average_rating: parseFloat(product.averageRating?.toString() || '0'),
+        review_count: product.reviewCount || 0,
         images: product.images || [],
         main_image: product.images?.[0] || null,
         weight: product.weight ? parseFloat(product.weight.toString()) : null,
@@ -85,7 +100,8 @@ export class PublicProductController {
 
       ResponseUtil.paginated(res, formattedProducts, total, page, perPage);
     } catch (error: any) {
-      ResponseUtil.error(res, error.message, 500);
+      console.error('Products index error:', error);
+      ResponseUtil.error(res, error.message || 'Failed to fetch products', 500);
     }
   }
 
@@ -118,10 +134,10 @@ export class PublicProductController {
         in_stock: product.inStock,
         stock_quantity: product.stockQuantity,
         is_featured: product.isFeatured,
-        average_rating: parseFloat(product.averageRating.toString()),
-        review_count: product.reviewCount,
-        view_count: product.viewCount,
-        sales_count: product.salesCount,
+        average_rating: parseFloat(product.averageRating?.toString() || '0'),
+        review_count: product.reviewCount || 0,
+        view_count: product.viewCount || 0,
+        sales_count: product.salesCount || 0,
         images: product.images || [],
         gallery: product.gallery || [],
         main_image: product.images?.[0] || null,
@@ -152,7 +168,7 @@ export class PublicProductController {
           review: review.review,
           images: review.images || [],
           is_verified_purchase: review.isVerifiedPurchase,
-          helpful_count: review.helpfulCount,
+          helpful_count: review.helpfulCount || 0,
           user: {
             id: review.user.id,
             name: review.user.name,
@@ -166,13 +182,15 @@ export class PublicProductController {
 
       ResponseUtil.success(res, formattedProduct);
     } catch (error: any) {
-      ResponseUtil.error(res, error.message, 500);
+      console.error('Product show error:', error);
+      ResponseUtil.error(res, error.message || 'Failed to fetch product', 500);
     }
   }
 
   static async featured(req: Request, res: Response): Promise<void> {
     try {
-      const products = await ProductService.getFeaturedProducts();
+      const limit = parseInt(req.query.limit as string) || 8;
+      const products = await ProductService.getFeaturedProducts(limit);
 
       const formattedProducts = products.map((product: any) => ({
         id: product.id,
@@ -192,8 +210,8 @@ export class PublicProductController {
         ),
         sku: product.sku,
         in_stock: product.inStock,
-        average_rating: parseFloat(product.averageRating.toString()),
-        review_count: product.reviewCount,
+        average_rating: parseFloat(product.averageRating?.toString() || '0'),
+        review_count: product.reviewCount || 0,
         images: product.images || [],
         main_image: product.images?.[0] || null,
         category: product.category ? {
@@ -212,7 +230,8 @@ export class PublicProductController {
 
       ResponseUtil.success(res, formattedProducts);
     } catch (error: any) {
-      ResponseUtil.error(res, error.message, 500);
+      console.error('Featured products error:', error);
+      ResponseUtil.error(res, error.message || 'Failed to fetch featured products', 500);
     }
   }
 }

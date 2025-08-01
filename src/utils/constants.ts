@@ -1,4 +1,3 @@
-// src/utils/constants.ts
 export const ORDER_STATUS = {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',
