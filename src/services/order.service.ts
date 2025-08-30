@@ -1,4 +1,3 @@
-// src/services/order.service.ts
 import prisma from '@/config/database';
 import { OrderCreateData, OrderUpdateStatusData } from '@/types/order.types';
 import { HelperUtil } from '@/utils/helpers.util';
