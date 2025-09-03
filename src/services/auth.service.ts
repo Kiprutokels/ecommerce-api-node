@@ -1,4 +1,3 @@
-// src/services/auth.service.ts
 import prisma from '@/config/database';
 import { hashPassword, comparePassword, generateToken } from '@/config/auth';
 import { RegisterData, LoginData, AuthResponse } from '@/types/auth.types';
