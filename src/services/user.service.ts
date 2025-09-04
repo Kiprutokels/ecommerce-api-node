@@ -1,4 +1,3 @@
-// src/services/user.service.ts
 import prisma from '@/config/database';
 import { hashPassword } from '@/config/auth';
 import redisClient from '@/config/redis';

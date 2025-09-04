@@ -35,6 +35,9 @@ export const CACHE_KEYS = {
   CATEGORIES: 'categories:all',
   BRANDS: 'brands:all',
   FEATURED_PRODUCTS: 'products:featured',
+  ACTIVE_FLASH_SALES: 'flash_sales:active',
+  FLASH_SALE: (id: string) => `flash_sale:${id}`,
+  FLASH_SALE_PRODUCTS: (id: string) => `flash_sale:${id}:products`,
   PRODUCT: (id: string) => `product:${id}`,
   USER: (id: string) => `user:${id}`,
 } as const;

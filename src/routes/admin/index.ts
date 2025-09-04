@@ -8,6 +8,7 @@ import { AdminBrandController } from '@/controllers/admin/brand.controller';
 import { AdminSettingsController } from '@/controllers/admin/settings.controller';
 import { authenticate } from '@/middleware/auth.middleware';
 import { requireAdmin } from '@/middleware/admin.middleware';
+import { AdminFlashSaleController } from '@/controllers/admin/flashSale.controller';
 import { validateBody, validateQuery } from '@/middleware/validation.middleware';
 import {
   createCategorySchema,
@@ -70,6 +71,13 @@ router.post('/products/:id/duplicate', AdminProductController.duplicate);
 router.patch('/products/:id/toggle-status', AdminProductController.toggleStatus);
 router.patch('/products/:id/toggle-featured', AdminProductController.toggleFeatured);
 
+router.get('/flash-sales', AdminFlashSaleController.index);
+router.post('/flash-sales', AdminFlashSaleController.store);
+router.get('/flash-sales/:id', AdminFlashSaleController.show);
+router.put('/flash-sales/:id', AdminFlashSaleController.update);
+router.delete('/flash-sales/:id', AdminFlashSaleController.destroy);
+router.post('/flash-sales/:id/products', AdminFlashSaleController.addProduct);
+router.delete('/flash-sales/:id/products/:productId', AdminFlashSaleController.removeProduct);
 // Orders
 router.get('/orders', validateQuery(orderQuerySchema), AdminOrderController.index);
 router.get('/orders/stats', AdminOrderController.stats);

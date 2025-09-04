@@ -105,6 +105,7 @@ model Product {
   reviewCount         Int       @default(0) @map("review_count")
   viewCount           Int       @default(0) @map("view_count")
   salesCount          Int       @default(0) @map("sales_count")
+  
   metaTitle           String?   @map("meta_title")
   metaDescription     String?   @map("meta_description")
   seoKeywords         String[]  @map("seo_keywords")
@@ -114,11 +115,48 @@ model Product {
   category            Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   brand               Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
   orderItems          OrderItem[]
+  flashSaleProducts   FlashSaleProduct[]
   reviews             ProductReview[]
   wishlists           Wishlist[]
   shoppingCarts       ShoppingCart[]
 
   @@map("products")
+}
+model FlashSale {
+  id              String    @id @default(cuid())
+  title           String
+  description     String?
+  startDate       DateTime  @map("start_date")
+  endDate         DateTime  @map("end_date")
+  discountPercent Int       @map("discount_percent")
+  isActive        Boolean   @default(true) @map("is_active")
+  bannerImage     String?   @map("banner_image")
+  priority        Int       @default(0)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  products        FlashSaleProduct[]
+
+  @@map("flash_sales")
+}
+
+model FlashSaleProduct {
+  id              String    @id @default(cuid())
+  flashSaleId     String    @map("flash_sale_id")
+  productId       String    @map("product_id")
+  originalPrice   Decimal   @map("original_price") @db.Decimal(10, 2)
+  salePrice       Decimal   @map("sale_price") @db.Decimal(10, 2)
+  stockLimit      Int?      @map("stock_limit")
+  soldCount       Int       @default(0) @map("sold_count")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  flashSale       FlashSale @relation(fields: [flashSaleId], references: [id], onDelete: Cascade)
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([flashSaleId, productId])
+  @@map("flash_sale_products")
 }
 
 model Order {

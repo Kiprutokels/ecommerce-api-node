@@ -6,6 +6,7 @@ import { validateBody, validateQuery } from '@/middleware/validation.middleware'
 import { authenticate } from '@/middleware/auth.middleware';
 import { productQuerySchema } from '@/validators/product.validator';
 import { createOrderSchema, orderQuerySchema } from '@/validators/order.validator';
+import { PublicFlashSaleController } from '@/controllers/public/flashSale.controller';
 
 const router = Router();
 
@@ -17,6 +18,9 @@ router.get('/brands', PublicCategoryController.brands);
 router.get('/products', validateQuery(productQuerySchema), PublicProductController.index);
 router.get('/products/featured', PublicProductController.featured);
 router.get('/products/:id', PublicProductController.show);
+
+router.get('/flash-sales', PublicFlashSaleController.index);
+router.get('/flash-sales/:id', PublicFlashSaleController.show);
 
 // Orders (requires authentication)
 router.get('/orders', authenticate, validateQuery(orderQuerySchema), PublicOrderController.index);
