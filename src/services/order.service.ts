@@ -1,7 +1,12 @@
-import prisma from '@/config/database';
-import { OrderCreateData, OrderUpdateStatusData } from '@/types/order.types';
-import { HelperUtil } from '@/utils/helpers.util';
-import { DEFAULT_TAX_RATE, FREE_SHIPPING_THRESHOLD, DEFAULT_SHIPPING_COST, DEFAULT_CURRENCY } from '@/utils/constants';
+import prisma from "@/config/database";
+import { OrderCreateData, OrderUpdateStatusData } from "@/types/order.types";
+import { HelperUtil } from "@/utils/helpers.util";
+import {
+  DEFAULT_TAX_RATE,
+  FREE_SHIPPING_THRESHOLD,
+  DEFAULT_SHIPPING_COST,
+  DEFAULT_CURRENCY,
+} from "@/utils/constants";
 
 export class OrderService {
   static async createOrder(userId: string, data: OrderCreateData) {
@@ -42,7 +47,9 @@ export class OrderService {
         }
 
         if (product.manageStock && product.stockQuantity < item.quantity) {
-          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stockQuantity}`);
+          throw new Error(
+            `Insufficient stock for ${product.name}. Available: ${product.stockQuantity}`
+          );
         }
 
         const currentPrice = product.salePrice || product.price;
@@ -78,16 +85,18 @@ export class OrderService {
 
       // Calculate tax and shipping
       const taxAmount = subtotal * DEFAULT_TAX_RATE;
-      const shippingAmount = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST;
+      const shippingAmount =
+        subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING_COST;
       const discountAmount = 0; // TODO: Implement coupon logic
-      const totalAmount = subtotal + taxAmount + shippingAmount - discountAmount;
+      const totalAmount =
+        subtotal + taxAmount + shippingAmount - discountAmount;
 
       // Create order
       const order = await tx.order.create({
         data: {
           orderNumber: HelperUtil.generateOrderNumber(),
           userId,
-          status: 'PENDING',
+          status: "PENDING",
           subtotal,
           taxRate: DEFAULT_TAX_RATE,
           taxAmount,
@@ -95,7 +104,7 @@ export class OrderService {
           discountAmount,
           totalAmount,
           currency: DEFAULT_CURRENCY,
-          paymentStatus: 'PENDING',
+          paymentStatus: "PENDING",
           paymentMethod: data.payment_method,
           billingAddress: data.billing_address,
           shippingAddress: data.shipping_address,
@@ -115,7 +124,7 @@ export class OrderService {
 
       // Create order items
       await tx.orderItem.createMany({
-        data: orderItems.map(item => ({
+        data: orderItems.map((item) => ({
           ...item,
           orderId: order.id,
         })),
@@ -152,7 +161,7 @@ export class OrderService {
 
   static async getOrderById(orderId: string, userId?: string) {
     const where: any = { id: orderId };
-    
+
     // If userId is provided, ensure user can only access their own orders
     if (userId) {
       where.userId = userId;
@@ -187,10 +196,15 @@ export class OrderService {
     });
   }
 
-  static async getUserOrders(userId: string, filters: any, page: number, perPage: number) {
+  static async getUserOrders(
+    userId: string,
+    filters: any,
+    page: number,
+    perPage: number
+  ) {
     const where: any = { userId };
 
-    if (filters.status && filters.status !== 'all') {
+    if (filters.status && filters.status !== "all") {
       where.status = filters.status.toUpperCase();
     }
 
@@ -210,7 +224,7 @@ export class OrderService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * perPage,
         take: perPage,
       }),
@@ -223,26 +237,36 @@ export class OrderService {
   static async getAllOrders(filters: any, page: number, perPage: number) {
     const where: any = {};
 
-    if (filters.status && filters.status !== 'all') {
+    if (filters.status && filters.status !== "all") {
       where.status = filters.status.toUpperCase();
     }
 
-    if (filters.payment_status && filters.payment_status !== 'all') {
+    if (filters.payment_status && filters.payment_status !== "all") {
       where.paymentStatus = filters.payment_status.toUpperCase();
     }
 
     if (filters.search) {
       where.OR = [
-        { orderNumber: { contains: filters.search, mode: 'insensitive' } },
+        { orderNumber: { contains: filters.search, mode: "insensitive" } },
         {
           user: {
             OR: [
-              { name: { contains: filters.search, mode: 'insensitive' } },
-              { email: { contains: filters.search, mode: 'insensitive' } },
+              { name: { contains: filters.search, mode: "insensitive" } },
+              { email: { contains: filters.search, mode: "insensitive" } },
             ],
           },
         },
       ];
+    }
+
+    if (filters.date_from || filters.date_to) {
+      where.createdAt = {};
+      if (filters.date_from) {
+        where.createdAt.gte = new Date(filters.date_from);
+      }
+      if (filters.date_to) {
+        where.createdAt.lte = new Date(filters.date_to + "T23:59:59.999Z");
+      }
     }
 
     const [orders, total] = await Promise.all([
@@ -269,7 +293,7 @@ export class OrderService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * perPage,
         take: perPage,
       }),
@@ -285,7 +309,7 @@ export class OrderService {
     });
 
     if (!order) {
-      throw new Error('Order not found');
+      throw new Error("Order not found");
     }
 
     const updateData: any = {
@@ -295,26 +319,26 @@ export class OrderService {
 
     // Set timestamps based on status
     const now = new Date();
-    switch (data.status) {
-      case 'confirmed':
-        if (order.status === 'PENDING') {
+    switch (data.status.toLowerCase()) {
+      case "confirmed":
+        if (order.status === "PENDING") {
           updateData.confirmedAt = now;
         }
         break;
-      case 'shipped':
-        if (order.status !== 'SHIPPED') {
+      case "shipped":
+        if (order.status !== "SHIPPED") {
           updateData.shippedAt = now;
           if (data.tracking_number) {
             updateData.trackingNumber = data.tracking_number;
           }
         }
         break;
-      case 'delivered':
-        if (order.status !== 'DELIVERED') {
+      case "delivered":
+        if (order.status !== "DELIVERED") {
           updateData.deliveredAt = now;
         }
         break;
-      case 'cancelled':
+      case "cancelled":
         updateData.cancelledAt = now;
         break;
     }
@@ -360,15 +384,15 @@ export class OrderService {
       });
 
       if (!order) {
-        throw new Error('Order not found');
+        throw new Error("Order not found");
       }
 
       if (order.userId !== userId) {
-        throw new Error('Unauthorized');
+        throw new Error("Unauthorized");
       }
 
-      if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
-        throw new Error('Order cannot be cancelled');
+      if (!["PENDING", "CONFIRMED"].includes(order.status)) {
+        throw new Error("Order cannot be cancelled");
       }
 
       // Restore stock quantities
@@ -389,7 +413,7 @@ export class OrderService {
       return tx.order.update({
         where: { id: orderId },
         data: {
-          status: 'CANCELLED',
+          status: "CANCELLED",
           cancelledAt: new Date(),
         },
         include: {
@@ -415,5 +439,163 @@ export class OrderService {
         },
       });
     });
+  }
+
+  // NEW METHODS FOR STATS AND EXPORT
+  static async getOrderStats() {
+    const [
+      totalOrders,
+      totalRevenue,
+      pendingOrders,
+      statusCounts,
+      recentOrders,
+    ] = await Promise.all([
+      // Total orders count
+      prisma.order.count(),
+
+      // Total revenue (sum of all delivered orders)
+      prisma.order.aggregate({
+        where: { status: "DELIVERED" },
+        _sum: { totalAmount: true },
+      }),
+
+      // Pending orders count
+      prisma.order.count({
+        where: { status: "PENDING" },
+      }),
+
+      // Status-wise counts
+      prisma.order.groupBy({
+        by: ["status"],
+        _count: true,
+      }),
+
+      // Recent orders for trend analysis
+      prisma.order.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+          },
+        },
+        select: {
+          totalAmount: true,
+          createdAt: true,
+          status: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+
+    // Calculate average order value
+    const averageOrderValue =
+      totalOrders > 0
+        ? (Number(totalRevenue._sum.totalAmount) || 0) / totalOrders
+        : 0;
+
+    // Calculate monthly revenue
+    const monthlyRevenue = recentOrders
+      .filter((order) => order.status === "DELIVERED")
+      .reduce((sum, order) => sum + Number(order.totalAmount), 0);
+
+    return {
+      total_orders: totalOrders,
+      total_revenue: Number(totalRevenue._sum.totalAmount) || 0,
+      pending_orders: pendingOrders,
+      average_order_value: averageOrderValue,
+      monthly_revenue: monthlyRevenue,
+      status_breakdown: statusCounts.reduce((acc, item) => {
+        acc[item.status.toLowerCase()] = item._count;
+        return acc;
+      }, {} as Record<string, number>),
+    };
+  }
+
+  static async getOrdersForExport(filters: any) {
+    const where: any = {};
+
+    if (filters.status && filters.status !== "all") {
+      where.status = filters.status.toUpperCase();
+    }
+
+    if (filters.payment_status && filters.payment_status !== "all") {
+      where.paymentStatus = filters.payment_status.toUpperCase();
+    }
+
+    if (filters.search) {
+      where.OR = [
+        { orderNumber: { contains: filters.search, mode: "insensitive" } },
+        {
+          user: {
+            OR: [
+              { name: { contains: filters.search, mode: "insensitive" } },
+              { email: { contains: filters.search, mode: "insensitive" } },
+            ],
+          },
+        },
+      ];
+    }
+
+    if (filters.date_from || filters.date_to) {
+      where.createdAt = {};
+      if (filters.date_from) {
+        where.createdAt.gte = new Date(filters.date_from);
+      }
+      if (filters.date_to) {
+        where.createdAt.lte = new Date(filters.date_to + "T23:59:59.999Z");
+      }
+    }
+
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                images: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Format for export
+    return orders.map((order) => ({
+      order_number: order.orderNumber,
+      customer_name: order.user.name,
+      customer_email: order.user.email,
+      customer_phone: order.user.phone || "",
+      status: order.status.toLowerCase(),
+      payment_status: order.paymentStatus.toLowerCase(),
+      payment_method: order.paymentMethod || "",
+      subtotal: parseFloat(order.subtotal.toString()),
+      tax_amount: parseFloat(order.taxAmount.toString()),
+      shipping_amount: parseFloat(order.shippingAmount.toString()),
+      discount_amount: parseFloat(order.discountAmount.toString()),
+      total_amount: parseFloat(order.totalAmount.toString()),
+      currency: order.currency,
+      total_items: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      tracking_number: order.trackingNumber || "",
+      notes: order.notes || "",
+      admin_notes: order.adminNotes || "",
+      created_at: order.createdAt.toISOString(),
+      confirmed_at: order.confirmedAt?.toISOString() || "",
+      shipped_at: order.shippedAt?.toISOString() || "",
+      delivered_at: order.deliveredAt?.toISOString() || "",
+      cancelled_at: order.cancelledAt?.toISOString() || "",
+    }));
   }
 }

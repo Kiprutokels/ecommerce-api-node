@@ -1,4 +1,4 @@
-import 'module-alias/register';
+// import "module-alias/register";
 
 import express, { Application } from "express";
 import cors from "cors";
@@ -14,6 +14,7 @@ import { swaggerSpec } from "@/config/swagger";
 import redisClient from "@/config/redis";
 import routes from "@/routes";
 import { errorHandler, notFoundHandler } from "@/middleware/error.middleware";
+import listEndpoints from "express-list-endpoints";
 
 // Load environment variables
 dotenv.config();
@@ -48,7 +49,7 @@ class App {
     // Rate limiting
     const limiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 1000, // limit each IP to 1000 requests per windowMs
+      max: 1000,
       message: "Too many requests from this IP, please try again later.",
       standardHeaders: true,
       legacyHeaders: false,
@@ -102,7 +103,6 @@ class App {
 
   private async connectServices(): Promise<void> {
     try {
-      // Connect to Redis
       await redisClient.connect();
     } catch (error) {
       console.error("Failed to connect to services:", error);
@@ -120,6 +120,17 @@ class App {
 🏥 Health Check: http://localhost:${PORT}/health
 🌍 Environment: ${process.env.NODE_ENV || "development"}
       `);
+
+      // 🔥 Log endpoints
+      const endpoints = listEndpoints(this.app);
+      console.log("Registered endpoints:");
+      console.table(
+        endpoints.map((e) => ({
+          path: e.path,
+          methods: e.methods.join(", "),
+          middlewares: e.middlewares.join(", "),
+        }))
+      );
     });
 
     // Graceful shutdown

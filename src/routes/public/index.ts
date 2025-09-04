@@ -1,4 +1,3 @@
-// src/routes/public/index.ts
 import { Router } from 'express';
 import { PublicCategoryController } from '@/controllers/public/category.controller';
 import { PublicProductController } from '@/controllers/public/product.controller';

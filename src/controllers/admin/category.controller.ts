@@ -1,4 +1,3 @@
-// src/controllers/admin/category.controller.ts
 import { Request, Response } from 'express';
 import { CategoryService } from '@/services/category.service';
 import { ResponseUtil } from '@/utils/response.util';

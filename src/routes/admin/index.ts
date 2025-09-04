@@ -64,8 +64,14 @@ router.patch('/products/:id/toggle-featured', AdminProductController.toggleFeatu
 
 // Orders
 router.get('/orders', validateQuery(orderQuerySchema), AdminOrderController.index);
+router.get('/orders/stats', AdminOrderController.stats);
+router.get('/orders/export', AdminOrderController.export);
 router.get('/orders/:id', AdminOrderController.show);
-router.patch('/orders/:id/status', validateBody(updateOrderStatusSchema), AdminOrderController.updateStatus);
+router.patch(
+  '/orders/:id/status',
+  validateBody(updateOrderStatusSchema),
+  AdminOrderController.updateStatus
+);
 
 // Users
 router.get('/users', validateQuery(userQuerySchema), AdminUserController.index);

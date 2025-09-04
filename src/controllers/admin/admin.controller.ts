@@ -1,4 +1,3 @@
-// src/controllers/admin/admin.controller.ts
 import { Request, Response } from 'express';
 import { ProductService } from '@/services/product.service';
 import { OrderService } from '@/services/order.service';

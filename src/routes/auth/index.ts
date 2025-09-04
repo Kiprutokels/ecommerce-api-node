@@ -1,4 +1,3 @@
-// src/routes/auth/index.ts
 import { Router } from 'express';
 import { AuthController } from '@/controllers/auth/auth.controller';
 import { validateBody } from '@/middleware/validation.middleware';

@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { OrderService } from '@/services/order.service';
-import { ResponseUtil } from '@/utils/response.util';
-import { HelperUtil } from '@/utils/helpers.util';
+import { Request, Response } from "express";
+import { OrderService } from "@/services/order.service";
+import { ResponseUtil } from "@/utils/response.util";
+import { HelperUtil } from "@/utils/helpers.util";
 
 export class AdminOrderController {
   static async index(req: Request, res: Response): Promise<void> {
@@ -11,9 +11,15 @@ export class AdminOrderController {
         status: req.query.status as string,
         payment_status: req.query.payment_status as string,
         search: req.query.search as string,
+        date_from: req.query.date_from as string,
+        date_to: req.query.date_to as string,
       };
 
-      const { orders, total } = await OrderService.getAllOrders(filters, page, perPage);
+      const { orders, total } = await OrderService.getAllOrders(
+        filters,
+        page,
+        perPage
+      );
 
       const formattedOrders = orders.map((order: any) => ({
         id: order.id,
@@ -36,7 +42,10 @@ export class AdminOrderController {
         shipped_at: order.shippedAt,
         delivered_at: order.deliveredAt,
         cancelled_at: order.cancelledAt,
-        total_items: order.items.reduce((sum: number, item: any) => sum + item.quantity, 0),
+        total_items: order.items.reduce(
+          (sum: number, item: any) => sum + item.quantity,
+          0
+        ),
         user: {
           id: order.user.id,
           name: order.user.name,
@@ -51,11 +60,13 @@ export class AdminOrderController {
           quantity: item.quantity,
           price: parseFloat(item.price.toString()),
           total: parseFloat(item.total.toString()),
-          product: item.product ? {
-            id: item.product.id,
-            name: item.product.name,
-            images: item.product.images,
-          } : null,
+          product: item.product
+            ? {
+                id: item.product.id,
+                name: item.product.name,
+                images: item.product.images,
+              }
+            : null,
         })),
         created_at: order.createdAt,
         updated_at: order.updatedAt,
@@ -72,7 +83,7 @@ export class AdminOrderController {
       const order = await OrderService.getOrderById(req.params.id);
 
       if (!order) {
-        ResponseUtil.error(res, 'Order not found', 404);
+        ResponseUtil.error(res, "Order not found", 404);
         return;
       }
 
@@ -117,13 +128,15 @@ export class AdminOrderController {
           quantity: item.quantity,
           price: parseFloat(item.price.toString()),
           total: parseFloat(item.total.toString()),
-          product: item.product ? {
-            id: item.product.id,
-            name: item.product.name,
-            images: item.product.images,
-            category: item.product.category,
-            brand: item.product.brand,
-          } : null,
+          product: item.product
+            ? {
+                id: item.product.id,
+                name: item.product.name,
+                images: item.product.images,
+                category: item.product.category,
+                brand: item.product.brand,
+              }
+            : null,
         })),
         created_at: order.createdAt,
         updated_at: order.updatedAt,
@@ -137,7 +150,10 @@ export class AdminOrderController {
 
   static async updateStatus(req: Request, res: Response): Promise<void> {
     try {
-      const order = await OrderService.updateOrderStatus(req.params.id, req.body);
+      const order = await OrderService.updateOrderStatus(
+        req.params.id,
+        req.body
+      );
 
       const formattedOrder = {
         id: order.id,
@@ -152,9 +168,39 @@ export class AdminOrderController {
         updated_at: order.updatedAt,
       };
 
-      ResponseUtil.success(res, formattedOrder, 'Order status updated successfully');
+      ResponseUtil.success(
+        res,
+        formattedOrder,
+        "Order status updated successfully"
+      );
     } catch (error: any) {
       ResponseUtil.error(res, error.message, 400);
+    }
+  }
+
+  static async stats(req: Request, res: Response): Promise<void> {
+    try {
+      const stats = await OrderService.getOrderStats();
+      ResponseUtil.success(res, stats);
+    } catch (error: any) {
+      ResponseUtil.error(res, error.message, 500);
+    }
+  }
+
+  static async export(req: Request, res: Response): Promise<void> {
+    try {
+      const filters = {
+        status: req.query.status as string,
+        payment_status: req.query.payment_status as string,
+        search: req.query.search as string,
+        date_from: req.query.date_from as string,
+        date_to: req.query.date_to as string,
+      };
+
+      const orders = await OrderService.getOrdersForExport(filters);
+      ResponseUtil.success(res, orders, "Orders exported successfully");
+    } catch (error: any) {
+      ResponseUtil.error(res, error.message, 500);
     }
   }
 }
