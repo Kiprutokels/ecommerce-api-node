@@ -29,6 +29,11 @@ import {
   updateUserSchema,
   userQuerySchema,
 } from '@/validators/user.validator';
+import {
+  createBrandSchema,
+  updateBrandSchema,
+  brandQuerySchema,
+} from '@/validators/brand.validator';
 
 const router = Router();
 
@@ -46,8 +51,11 @@ router.put('/categories/:id', validateBody(updateCategorySchema), AdminCategoryC
 router.delete('/categories/:id', AdminCategoryController.destroy);
 
 // Brands
-router.get('/brands', AdminBrandController.index);
-router.post('/brands', AdminBrandController.store);
+router.get('/brands', validateQuery(brandQuerySchema), AdminBrandController.index);
+router.post('/brands', validateBody(createBrandSchema), AdminBrandController.store);
+router.get('/brands/:id', AdminBrandController.show);
+router.put('/brands/:id', validateBody(updateBrandSchema), AdminBrandController.update);
+router.delete('/brands/:id', AdminBrandController.destroy);
 
 // Products
 router.get('/products', validateQuery(productQuerySchema), AdminProductController.index);
@@ -80,6 +88,7 @@ router.get('/users/:id', AdminUserController.show);
 router.put('/users/:id', validateBody(updateUserSchema), AdminUserController.update);
 router.delete('/users/:id', AdminUserController.destroy);
 
+// Settings
 router.get('/settings', AdminSettingsController.get);
 router.put('/settings', AdminSettingsController.update);
 
